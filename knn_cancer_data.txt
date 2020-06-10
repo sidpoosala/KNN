@@ -1,0 +1,100 @@
+# Collecting the Data 
+```{r}
+wbcd <-read.csv("e:/wisc_bc_data.csv",stringsAsFactors = FALSE)
+dim(wbcd)
+str(wbcd)
+```
+
+#Preparing the Data 
+
+```{r}
+wbcd <- wbcd[-1]
+str(wbcd)
+table(wbcd$diagnosis)
+```
+
+```{r}
+wbcd$diagnosis = factor(wbcd$diagnosis , levels= c("B","M") , labels =c("Benign","Maligant"))
+str(wbcd)
+round(prop.table(table(wbcd$diagnosis))*100)
+```
+
+```{r}
+summary(wbcd[c("radius_mean","area_mean","smoothness_mean")])
+```
+
+```{r}
+normalize <- function(x)
+{
+  return ( ( x - min(x)) / (max(x)-min(x)) )
+} 
+```
+
+```{r}
+wbcd_n = as.data.frame(lapply(wbcd[-1],normalize))
+summary(wbcd_n)
+```
+```{r}
+wbcd_train = wbcd_n[1:427,]
+wbcd_test = wbcd_n[428:569,]
+```
+
+```{r}
+wbcd_train_labels <- wbcd[1:427,1]
+wbcd_test_labels <- wbcd[428:569,1]
+```
+
+#Training and Evaluating the Model Performance 
+
+```{r}
+#install.packages("class")
+library(class)
+```
+
+#training the model
+```{r}
+wbcd_pred <- knn(train=wbcd_train,test=wbcd_test,cl=wbcd_train_labels,k=21)
+sqrt(450)
+#length(wbcd_pred)
+#wbcd_test_labels
+#wbcd_pred
+
+```
+
+```{r}
+library(gmodels)
+CrossTable(x=wbcd_test_labels,y=wbcd_pred,prop.chisq = FALSE)
+```
+
+#Improving of Model Performance
+
+```{r}
+wbcd_z <- as.data.frame(scale(wbcd[-1]))
+summary(wbcd_z$area_mean)
+```
+
+
+```{r}
+wbcd_train = wbcd_z[1:427,]
+wbcd_test = wbcd_z[428:569,]
+```
+
+```{r}
+wbcd_train_labels <- wbcd[1:427,1]
+wbcd_test_labels <- wbcd[428:569,1]
+```
+
+#Training and Evaluating the Model Performance 
+
+```{r}
+library(class)
+```
+
+
+```{r}
+wbcd_test_pred <- knn(train=wbcd_train,test=wbcd_test,cl=wbcd_train_labels,k=7)
+```
+
+```{r}
+library(gmodels)
+CrossTable(x=wbcd_test_labels,y=wbcd_test_pred,prop.chisq = FALSE)
